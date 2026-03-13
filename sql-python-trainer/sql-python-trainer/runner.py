@@ -17,7 +17,18 @@ def run_sql(code, problem_id=None):
         
         # Convert results to list of dicts if needed
         if isinstance(results, list):
-            output = results
+            # Convert Decimal and date objects to JSON-serializable types
+            output = []
+            for row in results:
+                converted_row = {}
+                for key, value in row.items():
+                    if isinstance(value, Decimal):
+                        converted_row[key] = float(value)
+                    elif isinstance(value, (datetime.date, datetime.datetime)):
+                        converted_row[key] = str(value)
+                    else:
+                        converted_row[key] = value
+                output.append(converted_row)
         else:
             output = [results]
         

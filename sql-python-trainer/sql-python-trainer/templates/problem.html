@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ problem.title }} - SQL & Python Trainer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="problem-header">
+            <div>
+                <a href="/problems" class="back-link">← Back to Problems</a>
+                <h1>{{ problem.id }}. {{ problem.title }}</h1>
+                <div class="problem-meta">
+                    <span class="badge badge-{{ problem.type.lower() }}">{{ problem.type }}</span>
+                    <span class="badge-difficulty badge-{{ problem.difficulty.lower() }}">{{ problem.difficulty }}</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="problem-container">
+            <!-- Left Panel: Description -->
+            <div class="problem-description">
+                <h3>Problem Description</h3>
+                <p>{{ problem.description }}</p>
+                
+                <h4>Available Tables</h4>
+                <ul>
+                    {% for table in problem.tables %}
+                    <li><code>{{ table }}</code></li>
+                    {% endfor %}
+                </ul>
+                
+                {% if problem.type == 'SQL' %}
+                <div class="table-schemas">
+                    <h5>Table Schemas</h5>
+                    <pre><code>users (user_id, signup_date, country)
+orders (order_id, user_id, order_date, revenue)
+products (product_id, category, price)
+order_items (order_id, product_id, quantity)</code></pre>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Right Panel: Code Editor -->
+            <div class="problem-workspace">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <span>Code Editor</span>
+                        <button id="run-btn" class="btn-run">▶ Run Code</button>
+                    </div>
+                    <div id="editor" style="height: 400px; border: 1px solid #ddd;"></div>
+                </div>
+                
+                <div class="output-container">
+                    <div class="output-header">Output</div>
+                    <div id="output" class="output-content">
+                        <p class="output-placeholder">Click "Run Code" to see results...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monaco Editor Scripts -->
+    <script>var require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } };</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.js"></script>
+    
+    <script>
+        const problemData = {{ problem | tojson }};
+        let editor;
+        
+        // Initialize Monaco Editor
+        require(['vs/editor/editor.main'], function() {
+            const language = problemData.type === 'SQL' ? 'sql' : 'python';
+            
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: problemData.starter_code || '',
+                language: language,
+                theme: 'vs-light',
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true
+            });
+        });
+        
+        // Run Code Button
+        document.getElementById('run-btn').addEventListener('click', async () => {
+            const code = editor.getValue();
+            const outputDiv = document.getElementById('output');
+            const runBtn = document.getElementById('run-btn');
+            
+            // Update button state
+            runBtn.disabled = true;
+            runBtn.textContent = '⏳ Running...';
+            outputDiv.innerHTML = '<p class="output-loading">Executing code...</p>';
+            
+            // Track event
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    'event': problemData.type === 'SQL' ? 'sql_run' : 'python_run',
+                    'problem_id': problemData.id
+                });
+            }
+            
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        problem_id: problemData.id,
+                        type: problemData.type
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Display output
+                    if (Array.isArray(result.output)) {
+                        // SQL results - display as table
+                        let html = '<table class="result-table"><thead><tr>';
+                        
+                        if (result.output.length > 0) {
+                            // Headers
+                            Object.keys(result.output[0]).forEach(key => {
+                                html += `<th>${key}</th>`;
+                            });
+                            html += '</tr></thead><tbody>';
+                            
+                            // Rows
+                            result.output.forEach(row => {
+                                html += '<tr>';
+                                Object.values(row).forEach(value => {
+                                    html += `<td>${value}</td>`;
+                                });
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        } else {
+                            html = '<p class="output-empty">Query returned no results.</p>';
+                        }
+                        
+                        outputDiv.innerHTML = html;
+                    } else {
+                        // Python results - display as text
+                        outputDiv.innerHTML = `<pre class="output-text">${result.output || 'Code executed successfully (no output)'}</pre>`;
+                    }
+                    
+                    // Track completion
+                    if (window.dataLayer) {
+                        window.dataLayer.push({
+                            'event': 'task_completed',
+                            'problem_id': problemData.id
+                        });
+                    }
+                } else {
+                    // Display error
+                    outputDiv.innerHTML = `<pre class="output-error">Error: ${result.error}</pre>`;
+                }
+            } catch (error) {
+                outputDiv.innerHTML = `<pre class="output-error">Error: ${error.message}</pre>`;
+            } finally {
+                // Reset button
+                runBtn.disabled = false;
+                runBtn.textContent = '▶ Run Code';
+            }
+        });
+        
+        // Track when user starts the task
+        if (window.dataLayer) {
+            window.dataLayer.push({
+                'event': 'task_started',
+                'problem_id': problemData.id
+            });
+        }
+    </script>
+</body>
+</html>

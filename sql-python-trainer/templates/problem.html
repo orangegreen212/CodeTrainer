@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ problem.title }} - SQL & Python Trainer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <header class="problem-header">
+            <div>
+                <a href="/problems" class="back-link">← Назад к задачам</a>
+                <h1>{{ problem.id }}. {{ problem.title }}</h1>
+                <div class="problem-meta">
+                    <span class="badge badge-{{ problem.type.lower() }}">{{ problem.type }}</span>
+                    <span class="badge-difficulty badge-{{ problem.difficulty.lower() }}">{{ problem.difficulty }}</span>
+                    <span class="badge-category">{{ problem.category }}</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="problem-container">
+            <!-- Left Panel: Description -->
+            <div class="problem-description">
+                <h3>📋 Описание задачи</h3>
+                <p>{{ problem.description }}</p>
+                
+                <h4>🗂️ Доступные таблицы</h4>
+                <ul>
+                    {% for table in problem.tables %}
+                    <li><code>{{ table }}</code></li>
+                    {% endfor %}
+                </ul>
+                
+                {% if problem.hint %}
+                <details class="hint-block">
+                    <summary>💡 Подсказка</summary>
+                    <p>{{ problem.hint }}</p>
+                </details>
+                {% endif %}
+                
+                <!-- Table Sample Data -->
+                {% if table_samples %}
+                <div class="table-samples">
+                    <h4>📊 Примеры данных</h4>
+                    {% for table_name, sample_data in table_samples.items() %}
+                    <div class="table-sample">
+                        <h5>{{ table_name }}</h5>
+                        {% if sample_data %}
+                        <div class="table-wrapper">
+                            <table class="sample-table">
+                                <thead>
+                                    <tr>
+                                        {% for key in sample_data[0].keys() %}
+                                        <th>{{ key }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in sample_data %}
+                                    <tr>
+                                        {% for value in row.values() %}
+                                        <td>{{ value }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Right Panel: Code Editor -->
+            <div class="problem-workspace">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <span>💻 Code Editor</span>
+                        <div class="editor-actions">
+                            <button id="run-btn" class="btn-run">▶ Запустить</button>
+                            <button id="validate-btn" class="btn-validate">✓ Проверить решение</button>
+                        </div>
+                    </div>
+                    <div id="editor" style="height: 400px; border: 1px solid #ddd;"></div>
+                </div>
+                
+                <div class="output-container">
+                    <div class="output-header">📤 Результат</div>
+                    <div id="output" class="output-content">
+                        <p class="output-placeholder">Напишите код и нажмите "Запустить"...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monaco Editor Scripts -->
+    <script>var require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } };</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.js"></script>
+    
+    <script>
+        const problemData = {{ problem | tojson }};
+        let editor;
+        
+        // Initialize Monaco Editor with EMPTY content
+        require(['vs/editor/editor.main'], function() {
+            const language = problemData.type === 'SQL' ? 'sql' : 'python';
+            
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '', // ПУСТОЙ редактор!
+                language: language,
+                theme: 'vs-light',
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true
+            });
+        });
+        
+        // Run Code Button
+        document.getElementById('run-btn').addEventListener('click', async () => {
+            const code = editor.getValue();
+            const outputDiv = document.getElementById('output');
+            const runBtn = document.getElementById('run-btn');
+            
+            if (!code.trim()) {
+                outputDiv.innerHTML = '<p class="output-error">⚠️ Напишите код перед запуском!</p>';
+                return;
+            }
+            
+            // Update button state
+            runBtn.disabled = true;
+            runBtn.textContent = '⏳ Выполняется...';
+            outputDiv.innerHTML = '<p class="output-loading">⏳ Выполнение кода...</p>';
+            
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        problem_id: problemData.id,
+                        type: problemData.type
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Display output
+                    if (Array.isArray(result.output)) {
+                        // SQL results - display as table
+                        let html = '<div class="result-success">✅ Запрос выполнен успешно!</div>';
+                        html += '<table class="result-table"><thead><tr>';
+                        
+                        if (result.output.length > 0) {
+                            // Headers
+                            Object.keys(result.output[0]).forEach(key => {
+                                html += `<th>${key}</th>`;
+                            });
+                            html += '</tr></thead><tbody>';
+                            
+                            // Rows
+                            result.output.forEach(row => {
+                                html += '<tr>';
+                                Object.values(row).forEach(value => {
+                                    html += `<td>${value}</td>`;
+                                });
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        } else {
+                            html += '<p class="output-empty">Запрос не вернул результатов.</p>';
+                        }
+                        
+                        outputDiv.innerHTML = html;
+                    } else {
+                        // Python results - display as text
+                        outputDiv.innerHTML = `<div class="result-success">✅ Код выполнен успешно!</div><pre class="output-text">${result.output || 'Код выполнен (нет вывода)'}</pre>`;
+                    }
+                } else {
+                    // Display error
+                    outputDiv.innerHTML = `<pre class="output-error">❌ Ошибка: ${result.error}</pre>`;
+                }
+            } catch (error) {
+                outputDiv.innerHTML = `<pre class="output-error">❌ Ошибка: ${error.message}</pre>`;
+            } finally {
+                // Reset button
+                runBtn.disabled = false;
+                runBtn.textContent = '▶ Запустить';
+            }
+        });
+        
+        // Validate Solution Button
+        document.getElementById('validate-btn').addEventListener('click', async () => {
+            const code = editor.getValue();
+            const outputDiv = document.getElementById('output');
+            const validateBtn = document.getElementById('validate-btn');
+            
+            if (!code.trim()) {
+                outputDiv.innerHTML = '<p class="output-error">⚠️ Напишите код перед проверкой!</p>';
+                return;
+            }
+            
+            validateBtn.disabled = true;
+            validateBtn.textContent = '⏳ Проверка...';
+            outputDiv.innerHTML = '<p class="output-loading">🤖 AI проверяет ваше решение...</p>';
+            
+            try {
+                const response = await fetch('/api/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        problem_id: problemData.id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.validated) {
+                    if (result.is_correct) {
+                        outputDiv.innerHTML = `
+                            <div class="validation-success">
+                                <h3>🎉 Решение правильное!</h3>
+                                <p>${result.feedback}</p>
+                            </div>`;
+                    } else {
+                        outputDiv.innerHTML = `
+                            <div class="validation-incorrect">
+                                <h3>❌ Решение неверное</h3>
+                                <p>${result.feedback}</p>
+                            </div>`;
+                    }
+                } else {
+                    outputDiv.innerHTML = `<p class="output-warning">⚠️ ${result.message}</p>`;
+                }
+            } catch (error) {
+                outputDiv.innerHTML = `<pre class="output-error">❌ Ошибка валидации: ${error.message}</pre>`;
+            } finally {
+                validateBtn.disabled = false;
+                validateBtn.textContent = '✓ Проверить решение';
+            }
+        });
+    </script>
+</body>
+</html>

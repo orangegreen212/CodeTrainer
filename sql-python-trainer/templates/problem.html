@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task - SQL & Python Trainer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css">
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5XW9HB7D');</script>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5XW9HB7D"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    
+    <div class="container-fluid">
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="uk">UK</button>
+        </div>
+        
+        <header class="problem-header">
+            <div>
+                <a href="/" class="back-link" style="margin-right:12px" title="Home">🏠</a><a href="/problems" class="back-link" data-i18n="problem.back">← Back to Tasks</a>
+                <h1 id="problem-title">{{ problem.id }}. {{ problem.title.en }}</h1>
+                <div class="problem-meta">
+                    <span class="badge badge-{{ problem.type.lower() }}">{{ problem.type }}</span>
+                    <span class="badge-difficulty badge-{{ problem.difficulty.lower() }}">{{ problem.difficulty }}</span>
+                    <span class="badge-category">{{ problem.category }}</span>
+                    
+                    <!-- Completion Checkbox -->
+                    <label class="complete-label">
+                        <input type="checkbox" id="complete-checkbox" data-problem-id="{{ problem.id }}">
+                        <span data-i18n="problem.mark_complete">✓ Mark as Completed</span>
+                    </label>
+                </div>
+            </div>
+        </header>
+        
+        <div class="problem-container">
+            <!-- Left Panel: Description -->
+            <div class="problem-description">
+                <h3>
+                    <svg class="icon-medium" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2"/>
+                    </svg>
+                    <span data-i18n="problem.description">Task Description</span>
+                </h3>
+                <p id="problem-desc">{{ problem.description.en }}</p>
+                
+                <h4>
+                    <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/>
+                    </svg>
+                    <span data-i18n="problem.tables">Available Tables</span>
+                </h4>
+                <ul>
+                    {% for table in problem.tables %}
+                    <li><code>{{ table }}</code></li>
+                    {% endfor %}
+                </ul>
+                
+                {% if problem.hint %}
+                <details class="hint-block">
+                    <summary>
+                        <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <path d="M12 16v-4M12 8h.01" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span data-i18n="problem.hint">Hint</span>
+                    </summary>
+                    <p id="problem-hint">{{ problem.hint.en }}</p>
+                </details>
+                {% endif %}
+                
+                <!-- Table Samples -->
+                {% if table_samples %}
+                <div class="table-samples">
+                    <h4>
+                        <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" stroke-width="2"/>
+                        </svg>
+                        <span data-i18n="problem.examples">Data Examples</span>
+                    </h4>
+                    {% for table_name, sample_data in table_samples.items() %}
+                    <div class="table-sample">
+                        <h5>{{ table_name }}</h5>
+                        {% if sample_data %}
+                        <div class="table-wrapper">
+                            <table class="sample-table">
+                                <thead>
+                                    <tr>
+                                        {% for key in sample_data[0].keys() %}
+                                        <th>{{ key }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in sample_data %}
+                                    <tr>
+                                        {% for value in row.values() %}
+                                        <td>{{ value }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Right Panel: Code Editor -->
+            <div class="problem-workspace">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <span>
+                            <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="16 18 22 12 16 6" stroke-width="2" stroke-linecap="round"/>
+                                <polyline points="8 6 2 12 8 18" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span data-i18n="problem.editor">Code Editor</span>
+                        </span>
+                        <button id="run-btn" class="btn-run" data-i18n="problem.run">Run</button>
+                    </div>
+                    <div id="editor" style="height: 400px;"></div>
+                </div>
+                
+                <div class="output-container">
+                    <div class="output-header" data-i18n="problem.output">Output</div>
+                    <div id="output" class="output-content">
+                        <p class="output-placeholder" data-i18n="problem.placeholder">Write code and click Run...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monaco Editor -->
+    <script>var require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } };</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.nls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.js"></script>
+    
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/js/app.js"></script>
+    
+    <script>
+        const problemData = {{ problem | tojson }};
+        let editor;
+        
+        // Initialize Monaco Editor
+        require(['vs/editor/editor.main'], function() {
+            const language = problemData.type === 'SQL' ? 'sql' : 'python';
+            
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '',
+                language: language,
+                theme: 'vs-light',
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true
+            });
+        });
+        
+        // Update bilingual content
+        function updateProblemContent() {
+            const lang = window.i18n.getCurrentLang();
+            document.getElementById('problem-title').textContent = `${problemData.id}. ${problemData.title[lang]}`;
+            document.getElementById('problem-desc').textContent = problemData.description[lang];
+            if (document.getElementById('problem-hint')) {
+                document.getElementById('problem-hint').textContent = problemData.hint[lang];
+            }
+        }
+        
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimeout(updateProblemContent, 100);
+            });
+        });
+        
+        // Run Code
+        document.getElementById('run-btn').addEventListener('click', async () => {
+            const code = editor.getValue();
+            const outputDiv = document.getElementById('output');
+            const runBtn = document.getElementById('run-btn');
+            
+            if (!code.trim()) {
+                outputDiv.innerHTML = `<p class="output-error">${window.i18n.t('problem.empty_code')}</p>`;
+                return;
+            }
+            
+            runBtn.disabled = true;
+            runBtn.textContent = window.i18n.t('problem.executing');
+            outputDiv.innerHTML = `<p class="output-loading">${window.i18n.t('problem.executing')}</p>`;
+            
+            // Track in GTM
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    'event': problemData.type === 'SQL' ? 'sql_run' : 'python_run',
+                    'problem_id': problemData.id
+                });
+            }
+            
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        code: code,
+                        problem_id: problemData.id,
+                        type: problemData.type
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (Array.isArray(result.output)) {
+                        let html = `<div class="result-success">${window.i18n.t('problem.success')}</div>`;
+                        html += '<table class="result-table"><thead><tr>';
+                        
+                        if (result.output.length > 0) {
+                            Object.keys(result.output[0]).forEach(key => {
+                                html += `<th>${key}</th>`;
+                            });
+                            html += '</tr></thead><tbody>';
+                            
+                            result.output.forEach(row => {
+                                html += '<tr>';
+                                Object.values(row).forEach(value => {
+                                    html += `<td>${value}</td>`;
+                                });
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        } else {
+                            html += `<p class="output-empty">${window.i18n.t('problem.no_results')}</p>`;
+                        }
+                        
+                        outputDiv.innerHTML = html;
+                    } else {
+                        outputDiv.innerHTML = `<div class="result-success">${window.i18n.t('problem.success')}</div><pre class="output-text">${result.output || 'Code executed'}</pre>`;
+                    }
+                } else {
+                    outputDiv.innerHTML = `<pre class="output-error">${window.i18n.t('problem.error')} ${result.error}</pre>`;
+                }
+            } catch (error) {
+                outputDiv.innerHTML = `<pre class="output-error">${window.i18n.t('problem.error')} ${error.message}</pre>`;
+            } finally {
+                runBtn.disabled = false;
+                runBtn.textContent = window.i18n.t('problem.run');
+            }
+        });
+        
+        // Track task started
+        if (window.dataLayer) {
+            window.dataLayer.push({
+                'event': 'task_started',
+                'problem_id': problemData.id
+            });
+        }
+    </script>
+    <script src="/static/js/mistral-chat.js"></script>
+    <script src="/static/js/contact-form.js"></script>
+</body>
+</html>

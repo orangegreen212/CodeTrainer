@@ -1,0 +1,44 @@
+TO ADD IN problem.html AFTER <h3>Task Description</h3>:
+
+{% if problem.get('what_to_find') %}
+<div class="what-to-find-box">
+    <h4>📋 What to Find:</h4>
+    <p id="what-to-find-text">{{ problem.what_to_find.en }}</p>
+    
+    {% if problem.tables %}
+    <div class="tables-list">
+        <strong>Tables:</strong>
+        {% for table in problem.tables %}
+            <code>{{ table }}</code>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+AND ADD THIS CSS:
+
+.what-to-find-box {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.what-to-find-box h4 {
+    margin-bottom: 8px;
+    color: #92400e;
+}
+
+.tables-list {
+    margin-top: 12px;
+    font-size: 0.9em;
+}
+
+.tables-list code {
+    background: #fed7aa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin: 0 4px;
+}

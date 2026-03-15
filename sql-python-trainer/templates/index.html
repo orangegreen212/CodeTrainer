@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTrainer — Ace Your Data Analyst Interview</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5XW9HB7D');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg: #070B0F;
+            --surface: #0D1117;
+            --surface2: #161B22;
+            --border: rgba(255,255,255,0.08);
+            --text: #E6EDF3;
+            --muted: #8B949E;
+            --cyan: #00D4FF;
+            --cyan-dim: rgba(0,212,255,0.12);
+            --green: #3FB950;
+            --purple: #A371F7;
+            --yellow: #E3B341;
+        }
+
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 56px;
+            background: rgba(7,11,15,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+
+        .nav-logo-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, var(--cyan), #0088CC);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .nav-logo-icon svg { width: 16px; height: 16px; color: #000; }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+        .nav-cta {
+            background: var(--cyan) !important;
+            color: #000 !important;
+            font-weight: 600 !important;
+            padding: 7px 16px !important;
+        }
+
+        .nav-cta:hover { background: #00B8E0 !important; }
+
+        .lang-toggle {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .lang-btn.active { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+        /* HERO */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 24px 60px;
+            text-align: center;
+        }
+
+        /* Glow orb */
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(0,212,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-inner {
+            max-width: 760px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(0,212,255,0.08);
+            border: 1px solid rgba(0,212,255,0.2);
+            color: var(--cyan);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+            letter-spacing: 0.3px;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--cyan);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        h1 {
+            font-size: clamp(40px, 7vw, 72px);
+            font-weight: 700;
+            line-height: 1.08;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+
+        h1 .accent {
+            color: var(--cyan);
+            display: block;
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--muted);
+            line-height: 1.6;
+            max-width: 520px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--cyan);
+            color: #000;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 13px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn-primary:hover { background: #00B8E0; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,212,255,0.25); }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 15px;
+            padding: 13px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover { background: var(--surface2); border-color: rgba(255,255,255,0.15); }
+
+        /* STATS BAR */
+        .stats-bar {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: rgba(13,17,23,0.7);
+            backdrop-filter: blur(8px);
+        }
+
+        .stat-item {
+            flex: 1;
+            max-width: 200px;
+            padding: 28px 24px;
+            text-align: center;
+            border-right: 1px solid var(--border);
+        }
+
+        .stat-item:last-child { border-right: none; }
+
+        .stat-num {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--cyan);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* FEATURES */
+        .section {
+            position: relative;
+            z-index: 1;
+            padding: 80px 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--cyan);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-size: clamp(26px, 4vw, 40px);
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 12px;
+        }
+
+        .section-sub {
+            font-size: 16px;
+            color: var(--muted);
+            max-width: 500px;
+            line-height: 1.6;
+            margin-bottom: 48px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(0,212,255,0.2);
+            background: var(--surface2);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon-wrap {
+            width: 40px; height: 40px;
+            background: var(--cyan-dim);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 14px;
+        }
+
+        .feature-icon-wrap svg { width: 20px; height: 20px; color: var(--cyan); }
+
+        .feature-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* CATEGORIES */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .cat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .cat-card:hover { border-color: rgba(0,212,255,0.2); transform: translateY(-2px); }
+
+        .cat-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .cat-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .cat-info p { font-size: 13px; color: var(--muted); }
+        .cat-count { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+        /* CTA SECTION */
+        .cta-section {
+            position: relative;
+            z-index: 1;
+            padding: 80px 24px;
+            text-align: center;
+        }
+
+        .cta-inner {
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(0,212,255,0.02));
+            border: 1px solid rgba(0,212,255,0.15);
+            border-radius: 20px;
+            padding: 60px 40px;
+        }
+
+        .cta-inner h2 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
+        .cta-inner p { color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+        /* FOOTER */
+        footer {
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid var(--border);
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        footer a { color: var(--muted); text-decoration: none; }
+        footer a:hover { color: var(--text); }
+
+        @media (max-width: 700px) {
+            nav { padding: 0 16px; }
+            .nav-links a:not(.nav-cta) { display: none; }
+            .stats-bar { flex-wrap: wrap; }
+            .stat-item { min-width: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+            footer { flex-direction: column; gap: 12px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5XW9HB7D" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <nav>
+        <a href="/" class="nav-logo">
+            <div class="nav-logo-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M2 4h12M2 8h12M2 12h6" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            DataTrainer
+        </a>
+        <div class="nav-links">
+            <a href="/problems">Problems</a>
+            <a href="/patterns">Patterns</a>
+            <a href="/quizzes">Quizzes</a>
+            <a href="/problems" class="nav-cta">Start Now →</a>
+        </div>
+        <div class="lang-toggle">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="uk">UK</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge" data-i18n="hero.badge">97 Real Interview Problems</div>
+            <h1>
+                <span data-i18n="hero.title1">Crush your next</span>
+                <span class="accent" data-i18n="hero.title2">Data Analyst interview.</span>
+            </h1>
+            <p class="hero-sub" data-i18n="hero.sub">
+                Practice real-world SQL and Python problems in an immersive environment. Get instant feedback and sharpen your analytical thinking.
+            </p>
+            <div class="hero-actions">
+                <a href="/problems" class="btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span data-i18n="hero.cta">Start Practicing</span>
+                </a>
+                <a href="/patterns" class="btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <span data-i18n="hero.patterns">View Patterns</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-num">97</div>
+            <div class="stat-label" data-i18n="stats.problems">Interview Problems</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">5</div>
+            <div class="stat-label" data-i18n="stats.levels">Skill Levels</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">12</div>
+            <div class="stat-label" data-i18n="stats.patterns">Core Patterns</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">7</div>
+            <div class="stat-label" data-i18n="stats.quizzes">Theory Quizzes</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">100%</div>
+            <div class="stat-label" data-i18n="stats.free">Free Forever</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-label" data-i18n="features.label">WHAT YOU GET</div>
+        <h2 class="section-title" data-i18n="features.title">Built for real interviews</h2>
+        <p class="section-sub" data-i18n="features.sub">Every problem mirrors what top tech companies actually ask.</p>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                </div>
+                <h3 data-i18n="feat1.title">Real Product Schema</h3>
+                <p data-i18n="feat1.desc">Practice on tables like real companies — users, events, orders with sample data shown right in the task.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <h3 data-i18n="feat2.title">Instant Code Execution</h3>
+                <p data-i18n="feat2.desc">Write SQL or Python directly in the browser. See results instantly without any setup required.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <h3 data-i18n="feat3.title">Pattern Library</h3>
+                <p data-i18n="feat3.desc">12 core patterns explained step-by-step: Window Functions, Cohorts, A/B Tests, ML Pipelines and more.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <h3 data-i18n="feat4.title">Track Your Progress</h3>
+                <p data-i18n="feat4.desc">Mark problems as solved. See your progress across all difficulty levels from Junior to Middle.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                </div>
+                <h3 data-i18n="feat5.title">Theory Quizzes</h3>
+                <p data-i18n="feat5.desc">Test your knowledge with multiple-choice questions on key concepts: DAU, ARPU, A/B Testing and more.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                </div>
+                <h3 data-i18n="feat6.title">AI Tutor Chat</h3>
+                <p data-i18n="feat6.desc">Stuck? Ask the built-in AI assistant for hints and explanations. Available on every problem page.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="padding-top: 0">
+        <div class="section-label" data-i18n="cats.label">PROBLEM CATEGORIES</div>
+        <h2 class="section-title" data-i18n="cats.title">From Junior to Middle</h2>
+        <p class="section-sub" data-i18n="cats.sub">Structured progression to match your current skill level.</p>
+        
+        <div class="categories-grid">
+            <a href="/problems" class="cat-card">
+                <div class="cat-dot" style="background:#3FB950"></div>
+                <div class="cat-info">
+                    <h4>SQL Junior</h4>
+                    <p data-i18n="cat1.desc">Aggregates, filters, basic JOINs</p>
+                    <div class="cat-count">Tasks 1–35 · 35 problems</div>
+                </div>
+            </a>
+            <a href="/problems" class="cat-card">
+                <div class="cat-dot" style="background:#00D4FF"></div>
+                <div class="cat-info">
+                    <h4>SQL Product Analyst</h4>
+                    <p data-i18n="cat2.desc">Window functions, retention, LTV</p>
+                    <div class="cat-count">Tasks 36–57 · 22 problems</div>
+                </div>
+            </a>
+            <a href="/problems" class="cat-card">
+                <div class="cat-dot" style="background:#E3B341"></div>
+                <div class="cat-info">
+                    <h4>Python Junior</h4>
+                    <p data-i18n="cat3.desc">Pandas, data cleaning, groupby</p>
+                    <div class="cat-count">Tasks 58–75 · 18 problems</div>
+                </div>
+            </a>
+            <a href="/problems" class="cat-card">
+                <div class="cat-dot" style="background:#A371F7"></div>
+                <div class="cat-info">
+                    <h4>Python Data Scientist</h4>
+                    <p data-i18n="cat4.desc">Scikit-learn, ML pipelines</p>
+                    <div class="cat-count">Tasks 76–92 · 17 problems</div>
+                </div>
+            </a>
+            <a href="/problems" class="cat-card">
+                <div class="cat-dot" style="background:#F78166"></div>
+                <div class="cat-info">
+                    <h4>Middle Specialist</h4>
+                    <p data-i18n="cat5.desc">Complex algorithms, cohort matrix</p>
+                    <div class="cat-count">Tasks 93–97 · 5 problems</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <div class="cta-inner">
+            <h2 data-i18n="cta.title">Ready to level up?</h2>
+            <p data-i18n="cta.sub">Join hundreds of analysts preparing for their next interview. Start with task #1 and work your way up.</p>
+            <a href="/problems" class="btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span data-i18n="cta.btn">Start Practicing Free</span>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <span data-i18n="footer.text">Built for Data Analysts & Product Scientists</span>
+        <div style="display:flex;gap:20px;">
+            <a href="/patterns" data-i18n="footer.patterns">Patterns</a>
+            <a href="/quizzes" data-i18n="footer.quizzes">Quizzes</a>
+            <a href="/admin">Admin</a>
+        </div>
+    </footer>
+
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/contact-form.js"></script>
+    <script>
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (window.i18n) window.i18n.setLang(btn.dataset.lang);
+            });
+        });
+    </script>
+</body>
+</html>

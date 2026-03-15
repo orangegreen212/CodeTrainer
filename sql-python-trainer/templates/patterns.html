@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution Patterns — DataTrainer</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root { --bg:#070B0F; --surface:#0D1117; --surface2:#161B22; --border:rgba(255,255,255,0.08); --text:#E6EDF3; --muted:#8B949E; --cyan:#00D4FF; }
+        body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; margin: 0; }
+        
+        .top-nav {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(7,11,15,0.9); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px; height: 52px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .home-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 7px; border: 1px solid var(--border);
+            text-decoration: none; color: var(--muted); transition: all 0.15s;
+        }
+        .home-btn:hover { color: var(--cyan); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.06); }
+        .home-btn svg { width: 16px; height: 16px; }
+        .page-title { font-size: 14px; font-weight: 600; }
+        
+        .layout { display: flex; max-width: 1100px; margin: 0 auto; padding: 32px 24px; gap: 32px; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 220px; flex-shrink: 0;
+            position: sticky; top: 72px;
+            height: fit-content;
+        }
+        .sidebar-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 12px; border-radius: 7px;
+            font-size: 13px; font-weight: 500;
+            color: var(--muted); text-decoration: none;
+            transition: all 0.15s; cursor: pointer; background: none; border: none; width: 100%; text-align: left; font-family: inherit;
+            margin-bottom: 2px;
+        }
+        .sidebar-link:hover, .sidebar-link.active { background: rgba(0,212,255,0.08); color: var(--cyan); }
+        .sidebar-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+        
+        /* Content */
+        .content { flex: 1; min-width: 0; }
+        .pattern-group { display: none; }
+        .pattern-group.active { display: block; }
+        
+        .group-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .group-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+        
+        .pattern-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .pattern-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .pattern-meta { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+        .pattern-meta span { 
+            background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; margin-right: 6px;
+        }
+        
+        .steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .step { display: flex; gap: 12px; align-items: flex-start; }
+        .step-num {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(0,212,255,0.1); color: var(--cyan);
+            font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .step p { font-size: 14px; color: var(--text); line-height: 1.5; margin: 2px 0 0; }
+        .step strong { color: var(--cyan); }
+        
+        pre {
+            background: #0A0F14;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 0;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #A9B7C6;
+        }
+        .kw { color: #CC7832; }
+        .fn { color: #FFC66D; }
+        .str { color: #6A8759; }
+        .cm { color: #808080; font-style: italic; }
+        .num { color: #6897BB; }
+        
+        .applies-to {
+            margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--muted);
+        }
+        .applies-to strong { color: var(--text); }
+        
+        .cheatsheet { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .cheatsheet table { width: 100%; border-collapse: collapse; }
+        .cheatsheet th { background: var(--surface2); padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
+        .cheatsheet td { padding: 11px 16px; font-size: 13px; border-top: 1px solid var(--border); }
+        .cheatsheet td:first-child { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        .cheatsheet td code { background: rgba(255,255,255,0.05); padding: 2px 7px; border-radius: 4px; }
+        
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; padding: 16px; }
+            .sidebar { width: 100%; position: static; display: flex; flex-wrap: wrap; gap: 6px; }
+            .sidebar-label { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <a href="/" class="home-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </a>
+        <span class="page-title">Solution Patterns</span>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-label">Patterns</div>
+            <button class="sidebar-link active" data-target="ranking">
+                <span class="sidebar-dot"></span> 1–6: Ranking & Windows
+            </button>
+            <button class="sidebar-link" data-target="exclusion">
+                <span class="sidebar-dot"></span> 7–8: Exclusion & Funnel
+            </button>
+            <button class="sidebar-link" data-target="cohorts">
+                <span class="sidebar-dot"></span> 9–10: Cohorts & Cleaning
+            </button>
+            <button class="sidebar-link" data-target="abtest">
+                <span class="sidebar-dot"></span> 11–12: A/B Test & ML
+            </button>
+            <button class="sidebar-link" data-target="cheatsheet">
+                <span class="sidebar-dot"></span> Quick Cheatsheet
+            </button>
+        </aside>
+
+        <main class="content">
+            <!-- RANKING & WINDOWS -->
+            <div class="pattern-group active" id="ranking">
+                <h2 class="group-title">Ranking & Window Functions</h2>
+                <p class="group-sub">Six patterns for tasks #1–57 using SQL window functions. Used for ranking, time gaps, running totals, rolling averages, first/last values, and percentiles.</p>
+
+                <div class="pattern-card">
+                    <h3>Pattern 1: Ranking within Groups (Top N)</h3>
+                    <div class="pattern-meta"><span>Tasks #4, #11, #31, #34, #37, #41, #94, #95</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Choose rank function:</strong> ROW_NUMBER (unique), RANK (gaps on ties), DENSE_RANK (no gaps)</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>PARTITION BY:</strong> grouping column (e.g. country, user_id)</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>ORDER BY:</strong> sorting criterion (e.g. amount DESC)</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Filter:</strong> outer query WHERE rnk &lt;= N</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #95: Top 2 orders per country</span>
+<span class="kw">WITH</span> RankedOrders <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> u.country, o.order_id, o.amount,
+           <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span> (
+               <span class="kw">PARTITION BY</span> u.country
+               <span class="kw">ORDER BY</span> o.amount <span class="kw">DESC</span>
+           ) <span class="kw">as</span> rnk
+    <span class="kw">FROM</span> orders o <span class="kw">JOIN</span> users u <span class="kw">USING</span>(user_id)
+)
+<span class="kw">SELECT</span> country, order_id, amount
+<span class="kw">FROM</span> RankedOrders <span class="kw">WHERE</span> rnk &lt;= <span class="num">2</span>;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 2: Time Gap Analysis (Difference between Events)</h3>
+                    <div class="pattern-meta"><span>Tasks #37, #39, #42, #48, #51</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Use LAG/LEAD:</strong> get value from previous or next row</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>PARTITION BY user_id:</strong> analyze one user's history</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>ORDER BY time:</strong> always by event_time or order_date</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Calculate Gap:</strong> subtract previous time from current in outer query</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #37: Gap between 1st and 2nd purchase</span>
+<span class="kw">SELECT</span> user_id,
+       order_date - prev_order_date <span class="kw">as</span> gap_days
+<span class="kw">FROM</span> (
+    <span class="kw">SELECT</span> user_id, order_date,
+           <span class="fn">LAG</span>(order_date) <span class="kw">OVER</span> (
+               <span class="kw">PARTITION BY</span> user_id
+               <span class="kw">ORDER BY</span> order_date
+           ) <span class="kw">as</span> prev_order_date,
+           <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+               <span class="kw">PARTITION BY</span> user_id
+               <span class="kw">ORDER BY</span> order_date
+           ) <span class="kw">as</span> order_num
+    <span class="kw">FROM</span> orders
+) t
+<span class="kw">WHERE</span> order_num = <span class="num">2</span>;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 3: Running Totals (Cumulative Sum)</h3>
+                    <div class="pattern-meta"><span>Tasks #13, #43, #47, #57, #73</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Use SUM/COUNT</strong> or any aggregate</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>PARTITION BY</strong> if you need per-user running total</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>ORDER BY</strong> determines accumulation order (usually by time)</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #47: Cumulative user spend</span>
+<span class="kw">SELECT</span> user_id, order_date, amount,
+       <span class="fn">SUM</span>(amount) <span class="kw">OVER</span> (
+           <span class="kw">PARTITION BY</span> user_id
+           <span class="kw">ORDER BY</span> order_date
+       ) <span class="kw">as</span> running_total_spend
+<span class="kw">FROM</span> orders;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 4: Rolling Windows (Moving Averages)</h3>
+                    <div class="pattern-meta"><span>Tasks #2, #10, #38, #45</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Use AVG/SUM</strong> for trend smoothing</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>ORDER BY</strong> date</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Define Frame:</strong> ROWS BETWEEN N PRECEDING AND CURRENT ROW</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #38: 7-day rolling average revenue</span>
+<span class="kw">SELECT</span> order_date,
+       <span class="fn">AVG</span>(<span class="fn">SUM</span>(amount)) <span class="kw">OVER</span> (
+           <span class="kw">ORDER BY</span> order_date
+           <span class="kw">ROWS BETWEEN</span> <span class="num">6</span> <span class="kw">PRECEDING AND CURRENT ROW</span>
+       ) <span class="kw">as</span> rolling_avg_7d
+<span class="kw">FROM</span> orders
+<span class="kw">GROUP BY</span> <span class="num">1</span>;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 5: First/Last Value Attribution</h3>
+                    <div class="pattern-meta"><span>Tasks #14, #35, #52, #56</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Use FIRST_VALUE / LAST_VALUE</strong> to carry a value across all rows of a user</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>PARTITION BY user_id</strong></p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Frame Fix for LAST_VALUE:</strong> always add RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #56: Last UTM source before purchase</span>
+<span class="kw">SELECT DISTINCT</span> user_id,
+       <span class="fn">LAST_VALUE</span>(utm_source) <span class="kw">OVER</span> (
+           <span class="kw">PARTITION BY</span> user_id
+           <span class="kw">ORDER BY</span> event_time
+           <span class="kw">ROWS BETWEEN UNBOUNDED PRECEDING
+               AND UNBOUNDED FOLLOWING</span>
+       ) <span class="kw">as</span> last_attribution_source
+<span class="kw">FROM</span> events;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 6: Distribution and Percentiles</h3>
+                    <div class="pattern-meta"><span>Tasks #19, #49, #57, #69</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Use PERCENT_RANK / NTILE</strong> to divide sample into parts</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>ORDER BY</strong> the metric (e.g. total_spend)</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Filter</strong> to find anomalies or VIP customers</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #49: Top 1% Spenders (Pareto)</span>
+<span class="kw">WITH</span> UserSpending <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> user_id, <span class="fn">SUM</span>(amount) <span class="kw">as</span> total_spent,
+           <span class="fn">PERCENT_RANK</span>() <span class="kw">OVER</span> (
+               <span class="kw">ORDER BY</span> <span class="fn">SUM</span>(amount) <span class="kw">DESC</span>
+           ) <span class="kw">as</span> pct_rank
+    <span class="kw">FROM</span> orders
+    <span class="kw">GROUP BY</span> <span class="num">1</span>
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> UserSpending
+<span class="kw">WHERE</span> pct_rank &lt;= <span class="num">0.01</span>; <span class="cm">-- Top 1%</span></code></pre>
+                </div>
+            </div>
+
+            <!-- EXCLUSION & FUNNEL -->
+            <div class="pattern-group" id="exclusion">
+                <h2 class="group-title">Exclusion & Conversion Patterns</h2>
+                <p class="group-sub">Find missing records and calculate conversion rates — two of the most common real interview questions.</p>
+
+                <div class="pattern-card">
+                    <h3>Pattern 7: The "Exclusion" Pattern (Finding the Missing)</h3>
+                    <div class="pattern-meta"><span>Tasks #12, #16, #32</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>LEFT JOIN:</strong> take main table (users) and join the actions table (orders)</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>JOIN Key:</strong> by user_id</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Filter NULL:</strong> WHERE orders.order_id IS NULL to find non-buyers</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Result:</strong> users for reactivation campaigns</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #12: Users without orders</span>
+<span class="kw">SELECT</span> u.user_id
+<span class="kw">FROM</span> users u
+<span class="kw">LEFT JOIN</span> orders o <span class="kw">ON</span> u.user_id = o.user_id
+<span class="kw">WHERE</span> o.order_id <span class="kw">IS NULL</span>;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 8: Conversion Funnel (The Ratio Pattern)</h3>
+                    <div class="pattern-meta"><span>Tasks #16, #32, #40, #50, #63, #93</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Count Step A:</strong> number of users at the top of funnel</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>Count Step B:</strong> number of users who completed the action</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Multiply by 100.0:</strong> avoid integer division in SQL</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Divide:</strong> Step B / Step A</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #16: USA Conversion %</span>
+<span class="kw">SELECT</span>
+    <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> o.user_id) * <span class="num">100.0</span>
+    / <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> u.user_id) <span class="kw">as</span> conv_rate
+<span class="kw">FROM</span> users u
+<span class="kw">LEFT JOIN</span> orders o <span class="kw">USING</span>(user_id)
+<span class="kw">WHERE</span> u.country = <span class="str">'USA'</span>;</code></pre>
+                </div>
+            </div>
+
+            <!-- COHORTS & CLEANING -->
+            <div class="pattern-group" id="cohorts">
+                <h2 class="group-title">Cohorts & Data Cleaning</h2>
+                <p class="group-sub">Retention analysis via self-joins and normalizing raw data using SQL or Python.</p>
+
+                <div class="pattern-card">
+                    <h3>Pattern 9: The "Self-Join" for Cohorts (Time Offset)</h3>
+                    <div class="pattern-meta"><span>Tasks #36, #44, #67, #97</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Table A:</strong> registrations or first visit</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>Table B:</strong> repeated events</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>JOIN Condition:</strong> A.user_id = B.user_id</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Time Condition:</strong> B.date = A.date + interval 'N days'</p></div>
+                    </div>
+<pre><code><span class="cm">-- Task #36: 7-day Retention</span>
+<span class="kw">SELECT</span> <span class="fn">DATE</span>(u.reg_date) <span class="kw">as</span> cohort,
+       <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> e.user_id) <span class="kw">as</span> returned_users
+<span class="kw">FROM</span> users u
+<span class="kw">JOIN</span> events e <span class="kw">ON</span> u.user_id = e.user_id
+<span class="kw">WHERE</span> <span class="fn">DATE</span>(e.event_time) = <span class="fn">DATE</span>(u.reg_date) + <span class="num">7</span>
+<span class="kw">GROUP BY</span> <span class="num">1</span>;</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 10: Data Normalization (Cleaning Pattern)</h3>
+                    <div class="pattern-meta"><span>Tasks #58, #65, #71, #78</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Case Normalization:</strong> .str.lower() or LOWER()</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>Handling NaNs:</strong> .fillna() or COALESCE()</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Duplicate Removal:</strong> .drop_duplicates() or DISTINCT</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>String Trimming:</strong> .str.strip() or TRIM()</p></div>
+                    </div>
+<pre><code><span class="cm"># Task #58/71: Normalize UTM Source in Pandas</span>
+df[<span class="str">'utm_source'</span>] = df[<span class="str">'utm_source'</span>] \
+    .str.<span class="fn">lower</span>() \
+    .str.<span class="fn">strip</span>() \
+    .<span class="fn">fillna</span>(<span class="str">'organic'</span>)</code></pre>
+                </div>
+            </div>
+
+            <!-- A/B TEST & ML -->
+            <div class="pattern-group" id="abtest">
+                <h2 class="group-title">A/B Testing & ML Preprocessing</h2>
+                <p class="group-sub">Statistical significance testing for A/B experiments and preparing data for machine learning models.</p>
+
+                <div class="pattern-card">
+                    <h3>Pattern 11: Statistical Significance (The A/B Test Pattern)</h3>
+                    <div class="pattern-meta"><span>Tasks #66, #96</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Split Groups:</strong> filter data into Group A and Group B</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>Extract Metric:</strong> select the target column (e.g. revenue)</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Choose Test:</strong> T-test (for means) or Chi-square (for conversions)</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Interpret P-value:</strong> if p &lt; 0.05, result is significant</p></div>
+                    </div>
+<pre><code><span class="cm"># Task #66: T-test in Python</span>
+<span class="kw">from</span> scipy <span class="kw">import</span> stats
+
+<span class="cm"># 1. Split groups</span>
+rev_a = df[df[<span class="str">'group'</span>] == <span class="str">'A'</span>][<span class="str">'revenue'</span>]
+rev_b = df[df[<span class="str">'group'</span>] == <span class="str">'B'</span>][<span class="str">'revenue'</span>]
+
+<span class="cm"># 2. Run t-test</span>
+t_stat, p_val = stats.<span class="fn">ttest_ind</span>(rev_a, rev_b)
+
+<span class="cm"># 3. Decision</span>
+is_significant = p_val &lt; <span class="num">0.05</span>
+<span class="fn">print</span>(<span class="str">f'p={p_val:.4f}, significant={is_significant}'</span>)</code></pre>
+                </div>
+
+                <div class="pattern-card">
+                    <h3>Pattern 12: Machine Learning Pre-processing Pipeline</h3>
+                    <div class="pattern-meta"><span>Tasks #76, #77, #79, #85</span></div>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">1</div><p><strong>Imputation:</strong> fill missing values (median or mode)</p></div>
+                        <div class="step"><div class="step-num">2</div><p><strong>Encoding:</strong> convert text to numbers (One-Hot for countries, Label for ranks)</p></div>
+                        <div class="step"><div class="step-num">3</div><p><strong>Scaling:</strong> bring numbers to one scale (StandardScaler)</p></div>
+                        <div class="step"><div class="step-num">4</div><p><strong>Splitting:</strong> divide into Train and Test sets</p></div>
+                    </div>
+<pre><code><span class="cm"># Task #76/77: Full ML prep pipeline</span>
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+
+<span class="cm"># 1. Categorical → numeric (One-Hot)</span>
+df = pd.<span class="fn">get_dummies</span>(df, columns=[<span class="str">'platform'</span>, <span class="str">'country'</span>])
+
+<span class="cm"># 2. Fill NaNs & Scale</span>
+X = df.<span class="fn">drop</span>(<span class="str">'churn'</span>, axis=<span class="num">1</span>).<span class="fn">fillna</span>(<span class="num">0</span>)
+X_scaled = <span class="fn">StandardScaler</span>().<span class="fn">fit_transform</span>(X)
+
+<span class="cm"># 3. Split 80/20</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X_scaled, y, test_size=<span class="num">0.2</span>, random_state=<span class="num">42</span>
+)</code></pre>
+                </div>
+            </div>
+
+            <!-- CHEATSHEET -->
+            <div class="pattern-group" id="cheatsheet">
+                <h2 class="group-title">Quick Pattern Cheatsheet</h2>
+                <p class="group-sub">A summary of all 12 patterns and which tasks they apply to.</p>
+                <div class="cheatsheet">
+                    <table>
+                        <thead><tr><th>Task Block</th><th>Pattern</th><th>Key Functions / Methods</th></tr></thead>
+                        <tbody>
+                            <tr><td>1–35 (Junior)</td><td>Pattern 7: Exclusion, Pattern 8: Conversion</td><td><code>LEFT JOIN</code>, <code>WHERE IS NULL</code>, <code>% of Total</code></td></tr>
+                            <tr><td>36–57 (Product)</td><td>Patterns 1–6: Window Functions, Pattern 9: Cohorts</td><td><code>RANK</code>, <code>LAG</code>, <code>SUM OVER</code>, <code>Date + N</code></td></tr>
+                            <tr><td>58–75 (Pandas)</td><td>Pattern 10: Normalization, Pattern 11: Statistics</td><td><code>fillna</code>, <code>drop_duplicates</code>, <code>ttest_ind</code></td></tr>
+                            <tr><td>76–92 (ML)</td><td>Pattern 12: ML Pipeline</td><td><code>get_dummies</code>, <code>train_test_split</code>, <code>StandardScaler</code></td></tr>
+                            <tr><td>93–97 (Middle)</td><td>Pattern 1: Ranking (DENSE_RANK)</td><td><code>DENSE_RANK</code>, <code>PARTITION BY</code>, subqueries</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pattern-card" style="margin-top:20px">
+                    <h3>Pattern Combinations (Real Interview Examples)</h3>
+                    <div class="steps">
+                        <div class="step"><div class="step-num">→</div><p><strong>LTV 30 days (#43)</strong> — Pattern 3 (Running Total) with a date filter</p></div>
+                        <div class="step"><div class="step-num">→</div><p><strong>Churn Rate (#44)</strong> — Pattern 2 (Gap Analysis) where we find users whose gap from last event is too large</p></div>
+                        <div class="step"><div class="step-num">→</div><p><strong>Sticky Factor (#93)</strong> — Aggregation of Pattern 1 results across different time intervals</p></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/i18n.js"></script>
+    <script>
+        const links = document.querySelectorAll('.sidebar-link');
+        const groups = document.querySelectorAll('.pattern-group');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                links.forEach(l => l.classList.remove('active'));
+                groups.forEach(g => g.classList.remove('active'));
+                link.classList.add('active');
+                document.getElementById(link.dataset.target).classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>

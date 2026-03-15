@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Tasks — DataTrainer</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5XW9HB7D');</script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root {
+            --bg: #070B0F;
+            --surface: #0D1117;
+            --surface2: #161B22;
+            --border: rgba(255,255,255,0.08);
+            --text: #E6EDF3;
+            --muted: #8B949E;
+            --cyan: #00D4FF;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; margin: 0; }
+        
+        /* TOP NAV */
+        .top-nav {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(7,11,15,0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-left { display: flex; align-items: center; gap: 16px; }
+        .home-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: var(--muted);
+            transition: all 0.15s;
+        }
+        .home-btn:hover { color: var(--cyan); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.06); }
+        .home-btn svg { width: 16px; height: 16px; }
+        .page-title { font-size: 14px; font-weight: 600; color: var(--text); }
+        .page-count { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+        .nav-right { display: flex; align-items: center; gap: 8px; }
+        .lang-btn {
+            background: none; border: 1px solid var(--border);
+            color: var(--muted); padding: 4px 10px;
+            border-radius: 5px; font-size: 12px; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: all 0.15s;
+        }
+        .lang-btn.active { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.15); }
+        
+        /* FILTERS */
+        .filters-bar {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+            transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .filter-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); background: var(--surface2); }
+        .filter-btn.active { background: rgba(0,212,255,0.1); color: var(--cyan); border-color: rgba(0,212,255,0.3); }
+        .filter-btn-quizzes.active, .filter-btn-quizzes:hover { color: #A371F7; border-color: rgba(163,113,247,0.3); background: rgba(163,113,247,0.1); }
+        .filter-btn-patterns.active, .filter-btn-patterns:hover { color: #E3B341; border-color: rgba(227,179,65,0.3); background: rgba(227,179,65,0.1); }
+        
+        /* TABLE */
+        .table-wrap {
+            padding: 0 24px 40px;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        thead th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.1s;
+        }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        td {
+            padding: 13px 14px;
+            font-size: 14px;
+            color: var(--text);
+            vertical-align: middle;
+        }
+        td:first-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--muted);
+            width: 48px;
+        }
+        .badge-cat {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.06);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        .badge-easy { background: rgba(63,185,80,0.12); color: #3FB950; }
+        .badge-medium { background: rgba(227,179,65,0.12); color: #E3B341; }
+        .badge-hard { background: rgba(247,129,102,0.12); color: #F78166; }
+        .btn-solve {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: transparent;
+            color: var(--cyan);
+            border: 1px solid rgba(0,212,255,0.25);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            font-family: inherit;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-solve:hover { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.5); }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            display: inline-block;
+        }
+        .status-dot.solved { background: #3FB950; }
+        
+        @media (max-width: 600px) {
+            .table-wrap { padding: 0 12px 40px; }
+            td:nth-child(3), th:nth-child(3) { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5XW9HB7D" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <div class="top-nav">
+        <div class="nav-left">
+            <a href="/" class="home-btn" title="Home">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </a>
+            <span class="page-title" data-i18n="problems.title">All Problems</span>
+            <span class="page-count">({{ problems|length }})</span>
+        </div>
+        <div class="nav-right">
+            <button class="lang-btn active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="uk">UK</button>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="SQL">SQL</button>
+        <button class="filter-btn" data-filter="PYTHON">Python</button>
+        <a href="/quizzes" class="filter-btn filter-btn-quizzes">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Quizzes
+        </a>
+        <a href="/patterns" class="filter-btn filter-btn-patterns">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Patterns
+        </a>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th data-i18n="table.title">Title</th>
+                    <th data-i18n="table.category">Category</th>
+                    <th data-i18n="table.difficulty">Difficulty</th>
+                    <th data-i18n="table.status">Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="problems-list">
+                {% for problem in problems %}
+                <tr class="problem-row" data-type="{{ problem.type }}" data-id="{{ problem.id }}">
+                    <td>{{ problem.id }}</td>
+                    <td class="problem-title" data-en="{{ problem.title.en }}" data-uk="{{ problem.title.uk }}">
+                        {{ problem.title.en }}
+                    </td>
+                    <td><span class="badge-cat">{{ problem.category }}</span></td>
+                    <td><span class="badge-{{ problem.difficulty.lower() }}">{{ problem.difficulty }}</span></td>
+                    <td><span class="status-dot" data-id="{{ problem.id }}"></span></td>
+                    <td><a href="/problem/{{ problem.id }}" class="btn-solve">Solve →</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/contact-form.js"></script>
+    <script>
+        // Filter
+        const filterBtns = document.querySelectorAll('.filter-btn:not(a)');
+        const rows = document.querySelectorAll('.problem-row');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.dataset.filter;
+                rows.forEach(r => {
+                    r.style.display = (f === 'all' || r.dataset.type === f) ? '' : 'none';
+                });
+            });
+        });
+        // Lang
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (window.i18n) window.i18n.setLang(btn.dataset.lang);
+                const lang = btn.dataset.lang;
+                document.querySelectorAll('.problem-title').forEach(t => {
+                    t.textContent = t.getAttribute('data-' + lang) || t.getAttribute('data-en');
+                });
+            });
+        });
+        // Progress dots
+        const solved = JSON.parse(localStorage.getItem('solved_problems') || '[]');
+        solved.forEach(id => {
+            const dot = document.querySelector(`.status-dot[data-id="${id}"]`);
+            if (dot) dot.classList.add('solved');
+        });
+    </script>
+</body>
+</html>

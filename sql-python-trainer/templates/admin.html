@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SQL & Python Trainer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <svg class="icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4" stroke-width="2"/>
+                </svg>
+                Admin Panel
+            </h1>
+            <p class="subtitle">Add New Problems & Quizzes to Database</p>
+        </header>
+        
+        <main>
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="problems">Add Problem</button>
+                <button class="admin-tab" data-tab="quizzes">Add Quiz</button>
+            </div>
+            
+            <!-- ADD PROBLEM FORM -->
+            <div class="admin-form-container" id="problems-tab">
+                <form id="add-problem-form" class="admin-form">
+                    <h3>Add New Problem</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Title (EN)</label>
+                            <input type="text" name="title_en" required placeholder="Calculate DAU">
+                        </div>
+                        <div class="form-group">
+                            <label>Title (UK)</label>
+                            <input type="text" name="title_uk" required placeholder="Розрахуйте DAU">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>What to Find (EN) - Brief</label>
+                            <input type="text" name="what_to_find_en" placeholder="Average endorsements per user for TECHNICAL skills">
+                        </div>
+                        <div class="form-group">
+                            <label>What to Find (UK) - Brief</label>
+                            <input type="text" name="what_to_find_uk" placeholder="Середня кількість endorsements на користувача">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Description (EN)</label>
+                            <textarea name="description_en" required rows="3" placeholder="Full problem description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Description (UK)</label>
+                            <textarea name="description_uk" required rows="3" placeholder="Повний опис задачі"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select name="category" required>
+                                {% for category in categories %}
+                                <option value="{{ category }}">{{ category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Difficulty</label>
+                            <select name="difficulty" required>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select name="problem_type" required>
+                                <option value="SQL">SQL</option>
+                                <option value="PYTHON">Python</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tables (comma-separated)</label>
+                        <input type="text" name="tables" placeholder="users, events, orders">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Solution Code</label>
+                        <textarea name="solution" rows="6" placeholder="SELECT * FROM users;" style="font-family: monospace;"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Hint (EN)</label>
+                            <input type="text" name="hint_en" placeholder="Use GROUP BY...">
+                        </div>
+                        <div class="form-group">
+                            <label>Hint (UK)</label>
+                            <input type="text" name="hint_uk" placeholder="Використайте GROUP BY...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Admin Password</label>
+                        <input type="password" name="password" required placeholder="Enter admin password">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Add Problem</button>
+                </form>
+                
+                <div id="problem-message" class="form-message" style="display: none;"></div>
+            </div>
+            
+            <!-- ADD QUIZ FORM -->
+            <div class="admin-form-container" id="quizzes-tab" style="display: none;">
+                <form id="add-quiz-form" class="admin-form">
+                    <h3>Add New Quiz Question</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Question (EN)</label>
+                            <textarea name="question_en" required rows="2" placeholder="What is the SQL execution order?"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Question (UK)</label>
+                            <textarea name="question_uk" required rows="2" placeholder="Який порядок виконання SQL?"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Option 1</label>
+                        <input type="text" name="option1" required placeholder="First answer option">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Option 2</label>
+                        <input type="text" name="option2" required placeholder="Second answer option">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Option 3</label>
+                        <input type="text" name="option3" required placeholder="Third answer option">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Option 4</label>
+                        <input type="text" name="option4" required placeholder="Fourth answer option">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Correct Answer (0-3)</label>
+                        <select name="correct_answer" required>
+                            <option value="0">Option 1</option>
+                            <option value="1">Option 2</option>
+                            <option value="2">Option 3</option>
+                            <option value="3">Option 4</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Explanation (EN)</label>
+                            <textarea name="explanation_en" required rows="2" placeholder="Why this is the correct answer"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Explanation (UK)</label>
+                            <textarea name="explanation_uk" required rows="2" placeholder="Чому це правильна відповідь"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Admin Password</label>
+                        <input type="password" name="password" required placeholder="Enter admin password">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Add Quiz</button>
+                </form>
+                
+                <div id="quiz-message" class="form-message" style="display: none;"></div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Tab switching
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.admin-form-container').forEach(c => c.style.display = 'none');
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + '-tab').style.display = 'block';
+            });
+        });
+        
+        // Add Problem form
+        document.getElementById('add-problem-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const messageDiv = document.getElementById('problem-message');
+            
+            try {
+                const response = await fetch('/admin/add-problem', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.className = 'form-message success';
+                    messageDiv.textContent = `Success! Problem #${result.problem_id} added.`;
+                    messageDiv.style.display = 'block';
+                    e.target.reset();
+                    
+                    setTimeout(() => messageDiv.style.display = 'none', 5000);
+                } else {
+                    messageDiv.className = 'form-message error';
+                    messageDiv.textContent = `Error: ${result.error}`;
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                messageDiv.className = 'form-message error';
+                messageDiv.textContent = `Error: ${error.message}`;
+                messageDiv.style.display = 'block';
+            }
+        });
+        
+        // Add Quiz form
+        document.getElementById('add-quiz-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const messageDiv = document.getElementById('quiz-message');
+            
+            try {
+                const response = await fetch('/admin/add-quiz', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.className = 'form-message success';
+                    messageDiv.textContent = `Success! Quiz #${result.quiz_id} added.`;
+                    messageDiv.style.display = 'block';
+                    e.target.reset();
+                    
+                    setTimeout(() => messageDiv.style.display = 'none', 5000);
+                } else {
+                    messageDiv.className = 'form-message error';
+                    messageDiv.textContent = `Error: ${result.error}`;
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                messageDiv.className = 'form-message error';
+                messageDiv.textContent = `Error: ${error.message}`;
+                messageDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
